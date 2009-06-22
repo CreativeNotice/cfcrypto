@@ -1,5 +1,13 @@
 <cfcomponent output="false" extends="mxunit.framework.TestCase">
+<!--- 
+  NOTE: To run this test, you will need the randomizer components, which
+  can be found here: http://github.com/virtix/randomizer/tree/master
+  
+  Also, this uses a new possibly volitile mxunit annotation ... mxunit:data. 
+  If this fails, you might want to pull the most recent version from the
+  mxunit svn trunk and/or change the mxunit:data annotation to mxunit:dataProvider.
 
+ --->
 
  <cfset randomizer = createObject("component","sandbox.randomizer.Randomizer") />
  <cfset crypto = createObject('component', 'Crypto') />
