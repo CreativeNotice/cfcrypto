@@ -28,6 +28,7 @@
 	</cfif>
 	
 	<p><a href="LoginForm.cfm">Try Another?</a></p>
+    <p><a href="AddUserForm.cfm">Try Add User Example?</a></p>
   
   </div>
 

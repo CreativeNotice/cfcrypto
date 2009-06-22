@@ -11,5 +11,6 @@ Password: <input type="text" name="password" value="password" /> <br />
 
 <p>Password field above is "open" to facilitate testing.</p>
 </form>
+	<p><a href="AddUserForm.cfm">Try Add User?</a></p>
 
 </div>
