@@ -7,10 +7,11 @@
 
 
 <cffunction name="genSalt" hint="Simple utility wrapper for generatng random salt.">
- <cfreturn generateSecretKey("AES",256) />
+ <cfargument name="numBits" type="numeric" required="false" default="128" />   
+ <cfreturn generateSecretKey("AES", arguments.numBits) />
 </cffunction>
 
-<cffunction name="computeHash" access="package" returntype="String">
+<cffunction name="computeHash" access="public" returntype="String">
   <cfargument name="password" type="string" />
   <cfargument name="salt" type="string" />
   <cfargument name="iterations" type="numeric" required="false" default="1024" />

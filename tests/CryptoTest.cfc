@@ -28,7 +28,7 @@ function compareHashes() {
 
     //decrypted = decrypt(encrypted,key,"DESede");
     //debug(decrypted);
-   // assertEquals(originalString,decrypted);
+    // assertEquals(originalString,decrypted);
 
  }
 
@@ -129,7 +129,7 @@ function cfencryptTest() {
 
 
   function setUp(){
-   crypto = createObject('component', 'Crypto').init();
+   crypto = createObject('component', 'cfcrypto.Crypto').init();
    assertSame(crypto,crypto);
   }
 

@@ -10,7 +10,7 @@
  --->
 
  <cfset randomizer = createObject("component","sandbox.randomizer.Randomizer") />
- <cfset crypto = createObject('component', 'Crypto') />
+ <cfset crypto = createObject('component', 'cfcrypto.Crypto') />
  <cfset cols = {password='password'} />
  <cfset passwords = randomizer.genRandomQuery(256,cols) />
  <cfset salt = crypto.genSalt() />

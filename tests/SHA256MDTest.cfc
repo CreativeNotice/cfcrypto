@@ -2,9 +2,28 @@
 <cfscript>
 
   function setup() {
-   crypto = createObject('component', 'Crypto').init();
-   randomizer = createObject('component', 'sandbox.randomizer.Randomizer');
+   crypto = createObject('component', 'cfcrypto.Crypto').init();
+  
   }
+
+function peepSalt(){
+  // byte[] salt = new byte[12];
+   s = 'asdfgzxcvbnm';
+   salt = s.getBytes();
+   debug( arrayLen(salt));
+   debug(salt);
+   
+   salt2Str = generateSecretKey("AES", 128 );
+   salt2Bytes = salt2Str.getBytes();
+   debug( arrayLen(salt2Bytes));
+   debug(salt2Bytes);
+   
+   rand = createObject("java", "java.security.SecureRandom");
+   rand.nextBytes(salt); 
+   rand.nextBytes(salt2Bytes); 
+   
+    
+}
 
  function peep() {
   digest = createObject("java", "java.security.MessageDigest");
@@ -43,8 +62,8 @@ function testBill() {
 
 
  function passwordsShouldFail() {
-  p1 = randomizer.genRandomPassword();
-  p2 = randomizer.genRandomPassword();
+  p1 = 'lsk&8309%6jNB\\';
+  p2 = '*&(*AHSDHju7213876)';
   salt =  crypto.genSalt() ;
   debug(p1);
   debug(p2);
