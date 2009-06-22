@@ -4,6 +4,17 @@
 <cfscript>
 
 
+function dumpProviders (){
+    providers = createObject('java' ,'java.security.Security').getProviders();
+    dump(providers);
+}
+
+function testGenSecretKey(){
+   
+ key = generateSecretKey("AES",128);
+ asd = encrypt('foo','foo','MD5');
+}
+
 function compareHashes() {
 
 	//Encrypt(string, key [, algorithm, encoding, IVorSalt, iterations])
