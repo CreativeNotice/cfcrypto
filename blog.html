@@ -1,111 +1,53 @@
-<span style="font-family: arial,sans-serif;">I soaked up tons of great stuff at </span><a href="http://www.thinksec.com/" style="font-family: arial,sans-serif;">Frank Kim's</a><span style="font-family: arial,sans-serif;"> recent </span><a href="http://www.sans.org/sansfire09/description.php?tid=1937" style="font-family: arial,sans-serif;">Sansfire 2009 training</a><span style="font-family: arial,sans-serif;">
-in Baltimore. As a matter of fact, it was the single best training
-event I have ever attended and I highly recommend it. After the module
-on </span><a href="http://java.sun.com/javase/6/docs/technotes/guides/security/crypto/CryptoSpec.html" style="font-family: arial,sans-serif;">Java Cryptography Architecture</a><span style="font-family: arial,sans-serif;">
-(JCA) -- which was at the end of Day 3 and though my brain was fried -- I realized I had a big gap in my own knowledge in
-something that should be a fundamental skill for
-programmers today. Broadly and simply stated, that skill is to be able to protect
-data in your application. Now, if you're anything like me and you start hearing some
-terms like symmetric and asymmetric ciphers, MD5, SHA-1/2/3 message
-digest, cryptographically secure random number generation, etc., you might be inclined back
-away slowly (or quickly) and leave all that to someone else. Well, I'm
-here to say that implementing <a href="http://kb2.adobe.com/cps/546/e546373d.html" target="_blank">strong cryptography in ColdFusion</a> is a lot easier than I expected.&nbsp; And knowing how do this and why will give you valuable skills that can only make
-your software safer and your programming stronger.</span><br style="font-family: arial,sans-serif;">
-<br style="font-family: arial,sans-serif;">
-<span style="font-family: arial,sans-serif;">Let's start with a common web application task - storing credentials in a database. One appealing <a href="http://csrc.nist.gov/publications/drafts/800-118/draft-sp800-118.pdf">NIST recommendation</a> is that you <b>should</b> <b>not</b>
-store the passwords at all. Rather, you should store a <a href="http://en.wikipedia.org/wiki/Cryptographic_hash_function" target="_blank"><i>secure hash</i></a> of
-the password instead. When authentication needs to take place, instead
-of reading the password from a database and comparing that
-to the password entered by the user, you retrieve the password hash
-from the database, hash the password entered in the form,
-then compare the hashes. If you understand why we do this and just want
-to see how, skip down to </span><span style="font-family: arial,sans-serif;"><b>Secure Hashing</b></span><span style="font-family: arial,sans-serif;">. If you're mumbling to yourself "That sounds like a fucking waste of time," read the next section, please ... <br>
-<br>
-The driver here is that passwords are secret and <u>nobody</u>
-should have access to a user's password other than the user. System
-administrators and support staff should have the ability to reset
-passwords but not to read them. You might ask, "But&nbsp; my sites don't
-contain any sensitive information, why should I care?". Though true,
-how much do you want to bet that users registered on your site are
-using the same set of credentials to log into other sites, even banks?
-Does this possibly make your site a target for harvesting? Could this challenge
-customers' trust in you over time? Play that tape couple of times ...</span><br>
-<br style="font-family: arial,sans-serif;">
-<span style="font-family: arial,sans-serif;">The good news is that password hashing
-is so simple I can see no real reason not to do it. I'm not claiming to make your site secure; I'm simply
-saying that if you securely store password hashes instead of passwords,
-you can mitigate a number of potential attacks; for example, the
-Rainbow Table attack [7].</span> <span style="font-family: arial,sans-serif;">Note that password hashing differs from storing passwords encrypted. Why is this important? Because anything encrypted needs to be <i>unencrypted</i> to be read. To unencrypt, there must be a key and frequently it will be one key that can be used to read all passwords. We don't <b>ever</b> want passwords to be read by <b>anyone</b><i>.</i>
-Period. So, we want to create a strong, secure, one-way hash.&nbsp; </span><br>
-<br style="font-family: arial,sans-serif;">
-<span style="font-family: arial,sans-serif;"><b>Secure Hashing</b></span><br style="font-family: arial,sans-serif;">
-<br style="font-family: arial,sans-serif;">
-<span style="font-family: arial,sans-serif;">The technical term is <a href="http://en.wikipedia.org/wiki/Cryptographic_hash_function%20" target="_blank">Cryptographic Hash Function</a>, and there are several algorithmic variations : most notably, Message Digest (<a href="http://en.wikipedia.org/wiki/MD5" target="_blank">MD5</a>), </span><span style="font-family: arial,sans-serif;">Secure Hash Algorithm</span><span style="font-family: arial,sans-serif;">&nbsp;(</span><span style="font-family: arial,sans-serif;"><a href="http://en.wikipedia.org/wiki/SHA_hash_functions" target="_blank">SHA</a></span><span style="font-family: arial,sans-serif;">), and others. Essentially, a hash function
-generates a unique and fixed-sized representation of some
-data; aka a <i>Fingerprint</i>. A correct hash will always produce the same result for a given input; e.g., <i>f(x)=y</i>. For example, the string <i><span style="font-family: courier new,monospace;">foo</span></i>, when hashed with MD5 should always produce<span style="color: rgb(11, 83, 148); background-color: rgb(238, 238, 238); font-family: courier new,monospace;"> </span></span><span style="font-family: courier new,monospace; background-color: rgb(238, 238, 238); color: rgb(11, 83, 148);">ACBD18DB4CC2F85CEDEF654FCCC4A4D8</span><span style="font-family: arial,sans-serif;"><span style="font-family: courier new,monospace; background-color: rgb(238, 238, 238); color: rgb(11, 83, 148);"> </span>in ColdFusion. If another algorithm is used, the output
-will be different than this, yet it still should always produce
-consistent output. </span><br style="font-family: arial,sans-serif;">
-<span style="font-family: arial,sans-serif;"><br>
-Now, what if there are
-users with the same passwords? Won't the hashes be the same in the
-database? Right you are. What a Rainbow Table</span><span style="font-family: arial,sans-serif;">[7]</span><span style="font-family: arial,sans-serif;"> is, is essentially a
-large list of passwords that have been hashed using a number of
-algorithms. The attacker compares the hashes in your database with the
-ones in his Rainbow Table and then finds the matching password. The
-solution to this is to create unique hashes using&nbsp; <i>salt</i> and to repeatedly hash the hash. Salting is the process of inserting random data into<i> </i>the
-original data. Then, we repeat the hashing about 1000 times. This creates a unique and, if done correctly, a more secure
-hash. </span><br style="font-family: arial,sans-serif;">
+<span style="font-family:arial,sans-serif;">I soaked up tons of great stuff at </span><a href="http://www.thinksec.com/" style="font-family: arial,sans-serif;">Frank Kim's</a><span style="font-family:arial,sans-serif;"> recent </span><a href="http://www.sans.org/sansfire09/description.php?tid=1937" style="font-family: arial,sans-serif;">Sansfire 2009 training</a><span style="font-family:arial,sans-serif;">
+in Baltimore. As a matter of fact, it was the single best training  event I have ever attended and I highly recommend it. After the module on </span><a href="http://java.sun.com/javase/6/docs/technotes/guides/security/crypto/CryptoSpec.html" style="font-family: arial,sans-serif;">Java Cryptography Architecture</a><span style="font-family:arial,sans-serif;"> (JCA) -- which was at the end of Day 3 and though my brain was fried -- I realized I had a big gap in my own knowledge in something that should be a fundamental skill for programmers today. Broadly and simply stated, that skill is to be able to protect data in your application. Now, if you're anything like me and you start hearing some terms like symmetric and asymmetric ciphers, MD5, SHA-1/2/3 message digest, cryptographically secure random number generation, etc., you might be inclined back away slowly (or quickly) and leave all that to someone else. Well, I'm here to say that implementing <a href="http://kb2.adobe.com/cps/546/e546373d.html" target="_blank">strong cryptography in ColdFusion</a> is a lot easier than I expected.  And knowing how do this and why will give you valuable skills that can only make your software safer and your programming stronger.</span>
 
+<span style="font-family:arial,sans-serif;">Let's start with a common web application task - storing credentials in a database. One appealing <a href="http://csrc.nist.gov/publications/drafts/800-118/draft-sp800-118.pdf">NIST recommendation</a> is that you <b>should</b> <b>not </b>store the passwords at all. Rather, you should store a <a href="http://en.wikipedia.org/wiki/Cryptographic_hash_function" target="_blank"><i>secure hash</i></a> of the password instead. When authentication needs to take place, instead of reading the password from a database and comparing that to the password entered by the user, you retrieve the password hash from the database, hash the password entered in the form, then compare the hashes. If you understand why we do this and just want to see how, skip down to </span><span style="font-family:arial,sans-serif;"><b>Secure Hashing</b></span><span style="font-family:arial,sans-serif;">. If you're mumbling to yourself "That sounds like a fucking waste of time," read the next two paragraphs.
 
+The driver here is that passwords are secret and <u>nobody</u> should have access to a user's password other than the user. System administrators and support staff should have the ability to reset passwords but not to read them. You might ask, "But  my sites don't contain any sensitive information, why should I care?". Though true, how much do you want to bet that users registered on your site are using the same set of credentials to log into other sites, even banks?
+Does this possibly make your site a target for harvesting? Could this challenge customers' trust in you over time? Play that tape couple of times ...</span>
 
-<br style="font-family: arial,sans-serif;">
-<span style="font-family: arial,sans-serif;">Let's start with some usage. We use an example utility component called Crypto to perform the hashing. Full source code can be found <a href="http://github.com/virtix/cfcrypto/tree/master">here</a>.</span><br style="font-family: arial,sans-serif;">
-<br />
+<span style="font-family:arial,sans-serif;">The good news is that password hashing is so simple I can see no real reason not to do it. I'm not claiming to make your site secure; I'm simply saying that if you securely store password hashes instead of passwords, you can mitigate a number of potential attacks; for example, the Rainbow Table attack [7].</span> <span style="font-family:arial,sans-serif;">Note that password hashing differs from storing passwords encrypted. Why is this important? Because anything encrypted needs to be <i>unencrypted</i> to be read. To unencrypt, there must be a key and frequently it will be one key that can be used to read all passwords. We don't <b>ever</b> want passwords to be read by <b>anyone</b><i>.</i> Period. So, we want to create a strong, secure, one-way hash.  </span>
+
+<span style="font-family:arial,sans-serif;"><b>Secure Hashing</b></span>
+
+<span style="font-family:arial,sans-serif;">The technical term is <a href="http://en.wikipedia.org/wiki/Cryptographic_hash_function%20" target="_blank">Cryptographic Hash Function</a>, and there are several algorithmic variations : most notably, Message Digest (<a href="http://en.wikipedia.org/wiki/MD5" target="_blank">MD5</a>), </span><span style="font-family:arial,sans-serif;">Secure Hash Algorithm</span><span style="font-family:arial,sans-serif;"> (</span><span style="font-family:arial,sans-serif;"><a href="http://en.wikipedia.org/wiki/SHA_hash_functions" target="_blank">SHA</a></span><span style="font-family:arial,sans-serif;">), and others. Essentially, a hash function generates a unique and fixed-sized representation of some data; aka a <i>Fingerprint</i>. A correct hash will always produce the same result for a given input; e.g., <i>f(x)=y</i>. For example, the string <i><span style="font-family:courier new,monospace;">foo</span></i>, when hashed with MD5 should always produce<span style="color: rgb(11, 83, 148); background-color: rgb(238, 238, 238);font-family:courier new,monospace;" > </span></span><span style="background-color: rgb(238, 238, 238); color: rgb(11, 83, 148);font-family:courier new,monospace;" >ACBD18DB4CC2F85CEDEF654FCCC4A4D8</span><span style="font-family:arial,sans-serif;"><span style="background-color: rgb(238, 238, 238); color: rgb(11, 83, 148);font-family:courier new,monospace;" > </span>in ColdFusion. If another algorithm is used, the output will be different than this, yet it still should always produce
+consistent output. </span>
+<span style="font-family:arial,sans-serif;">
+Now, what if there are users with the same passwords? Won't the hashes be the same in the database? Right you are. What a Rainbow Table</span><span style="font-family:arial,sans-serif;">[7]</span><span style="font-family:arial,sans-serif;"> is, is essentially a large list of passwords that have been hashed using a number of algorithms. The attacker compares the hashes in your database with the ones in his Rainbow Table and then finds the matching password. The solution to this is to create unique hashes using  <i>salt</i> and to repeatedly hash the hash. Salting is the process of inserting random data into<i> </i>the original data. Then, we repeat the hashing about 1000 times. This creates a unique and, if done correctly, a more secure hash. </span>
+
+<span style="font-family:arial,sans-serif;">Let's start with some usage. We use an example utility component called Crypto to perform the hashing. Full source code can be found <a href="http://github.com/virtix/cfcrypto/tree/master">here</a>.</span>
+
 <script src="http://gist.github.com/135191.js"></script>
-<br />
-
-<span style="font-family: arial,sans-serif;">When run, this generates a <i>password hash</i> that looks something like <span style="font-family: courier new,monospace; color: rgb(11, 83, 148); background-color: rgb(238, 238, 238);">72C2CA24AD19EF7A8A9FC89184BA17BFA2D65CF3BE4FD2F0BBF3B460BD123550BC2D6BAB3AADF76EEAA4D8B5F6641A73365B21D17158779468049CACC32F0F2E</span> and a base64 <i>secure random salt </i>value of <span style="color: rgb(11, 83, 148); background-color: rgb(243, 243, 243);">4OP5GFmp/z0YYgUUlprVoig4pkGWhNGgMl37Tn4sLPw=</span>. When a user creates or changes their password, store only the hash and salt:<br>
-&nbsp; <br>
+<span style="font-family:arial,sans-serif;">When run, this generates a <i>password hash</i> that looks something like <span style="color: rgb(11, 83, 148); background-color: rgb(238, 238, 238);font-family:courier new,monospace;" >72C2CA24AD19EF7A8A9FC89184BA17BFA2D65CF3BE4FD2F0BBF3B460BD123550BC2D6BAB3AADF76EEAA4D8B5F6641A73365B21D17158779468049CACC32F0F2E</span> and a base64 <i>secure random salt </i>value of <span style="color: rgb(11, 83, 148); background-color: rgb(243, 243, 243);">4OP5GFmp/z0YYgUUlprVoig4pkGWhNGgMl37Tn4sLPw=</span>. When a user creates or changes their password, store only the hash and salt:
 
 <script src="http://gist.github.com/135151.js"></script>
+</span><span style="font-family:arial,sans-serif;">Now, to authenticate a user,  you do something like this:</span>
 
-<br>
-&nbsp;</span><br style="font-family: arial,sans-serif;">
-<span style="font-family: arial,sans-serif;">Now, to authenticate a user,&nbsp; you do something like this:</span><br style="font-family: arial,sans-serif;">
-<br />
 <script src="http://gist.github.com/135150.js"></script>
-<br />
-We're simply comparing the hashed value of the password entered
-by the user to the hashed value stored in the database. We do this by
-first retrieving the salt from the database and using that to generate the </span><span style="font-family: courier new,monospace;">hashedFormPassword<span style="font-family: arial,sans-serif;"> value</span>.</span><span style="font-family: arial,sans-serif;"> </span><span style="font-family: arial,sans-serif;">If you've read this far, I'm sure you want to look under the hood:</span><br style="font-family: arial,sans-serif;">
-<br />
+We're simply comparing the hashed value of the password entered by the user to the hashed value stored in the database. We do this by first retrieving the salt from the database and using that to generate the <span style="font-family:courier new,monospace;">hashedFormPassword<span style="font-family:arial,sans-serif;"> value</span>.</span><span style="font-family:arial,sans-serif;"> </span><span style="font-family:arial,sans-serif;">If you've read this far, I'm sure you want to look under the hood:</span>
+
 <script src="http://gist.github.com/135149.js"></script>
-<br />
-<span style="font-family: arial,sans-serif;">It doesn't get much easier for a complex topic, does it?<span style="font-family: courier new,monospace;"> computeHash() </span>accepts 4 arguments:<i> password, salt, iterations, and algorithm</i>. The required ones are <i>password</i> and <i>salt</i> - <i>salt</i> should be a secure random base64 string. iterations is the number of times the hash will be rehashed. PKCS 5 recommends doing this "a modest" 1000 times[9]. This would be a performance concern if this operation were done frequently, but since it is done only when a user logs in or creates an account, it's considered acceptable. The last parameter, algorithm, is a specific message digest algorithm. It's specified here are SHA512, which is the strongest FIPS-140 approved secure hashing algorithm. Adobe has some very good <a href="http://%20http://www.adobe.com/devnet/coldfusion/articles/dev_security/coldfusion_security_cf8.pdf">documentation</a> on available security providers and other related security best practices - this is required reading for ColdFusion developers! [5]<br>
-<br>
-<b>Salt Generation:</b></span><br>
-<span style="font-family: arial,sans-serif;">The core concept behind salt generation is to create a random set of bytes of N length.&nbsp; Since ColdFusion sits on Java, I chose the <span style="font-family: courier new,monospace;">java.security.SecureRandom</span> class.</span><br style="font-family: arial,sans-serif;">
-<br />
+<span style="font-family:arial,sans-serif;">It doesn't get much easier for a complex topic, does it?<span style="font-family:courier new,monospace;"> computeHash() </span>accepts 4 arguments:<i> password, salt, iterations, and algorithm</i>. The required ones are <i>password</i> and <i>salt</i> - <i>salt</i> should be a secure random base64 string. iterations is the number of times the hash will be rehashed. PKCS 5 recommends doing this "a modest" 1000 times[9]. This would be a performance concern if this operation were done frequently, but since it is done only when a user logs in or creates an account, it's considered acceptable. The last parameter, algorithm, is a specific message digest algorithm. It's specified here are SHA512, which is the strongest FIPS-140 approved secure hashing algorithm. Adobe has some very good <a href="http://%20http//www.adobe.com/devnet/coldfusion/articles/dev_security/coldfusion_security_cf8.pdf">documentation</a> on available security providers and other related security best practices - this is required reading for ColdFusion developers! [5]
+
+<b>Salt Generation:</b></span>
+
+<span style="font-family:arial,sans-serif;">The core concept behind salt generation is to create a random set of bytes of N length.  Since ColdFusion sits on Java, I chose the <span style="font-family:courier new,monospace;">java.security.SecureRandom</span> class.</span>
+
 <script src="http://gist.github.com/135153.js"></script>
 
-<br style="font-family: arial,sans-serif;">
-<b><span style="font-family: arial,sans-serif;">Summary</span></b><br>
-<span style="font-family: arial,sans-serif;">Using the example <a href="http://github.com/virtix/cfcrypto/tree/master">Crypto</a> component or your own variation will give you a viable option to storing passwords directly in the database and contribute to better security in your application. However, <b>do not</b> take my word alone for this. Please do some thorough research and learn for yourself. When it comes to protecting your customer's data and privacy (and your job) make sure you know what you are doing and why.</span><br style="font-family: arial,sans-serif;">
-<br style="font-family: arial,sans-serif;">
-<span style="font-family: arial,sans-serif;">Test and be Happy!</span><br style="font-family: arial,sans-serif;">
-<br style="font-family: arial,sans-serif;">
-<br style="font-family: arial,sans-serif;">
+<b><span style="font-family:arial,sans-serif;">Summary</span></b>
 
-<b style="font-family: arial,sans-serif;">References (Many are PDFs):</b><br style="font-family: arial,sans-serif;">
-<span style="font-family: arial,sans-serif;">[1] OWASP Java Hashing - http://www.owasp.org/index.php/Hashing_Java</span><br style="font-family: arial,sans-serif;">
-<span style="font-family: arial,sans-serif;">[2] NIST Secure Hash Standard - http://csrc.nist.gov/publications/fips/fips180-3/fips180-3_final.pdf<br>
-[3] FIPS-140-2 Draft (June,18,2009) - http://csrc.nist.gov/publications/fips/fips140-2/fips1402annexa.pdf</span><br style="font-family: arial,sans-serif;">
-<span style="font-family: arial,sans-serif;">[4] Guide to Enterprise Password Management (Draft) - http://csrc.nist.gov/publications/drafts/800-118/draft-sp800-118.pdf</span><br style="font-family: arial,sans-serif;">
-<span style="font-family: arial,sans-serif;">[5] ColdFusion 8 developer security guidelines - http://www.adobe.com/devnet/coldfusion/articles/dev_security/coldfusion_security_cf8.pdf</span><br style="font-family: arial,sans-serif;">
-<span style="font-family: arial,sans-serif;">[6] Java Cryptography Architecture (JCA) - http://java.sun.com/javase/6/docs/technotes/guides/security/crypto/CryptoSpec.html</span><br style="font-family: arial,sans-serif;">
-<span style="font-family: arial,sans-serif;">[7] Rainbow table - http://en.wikipedia.org/wiki/Rainbow_table</span><br style="font-family: arial,sans-serif;">
-<span style="font-family: arial,sans-serif;">[8] NIST&nbsp; Advanced Encryption Standard Algorithm Validation List - http://csrc.nist.gov/groups/STM/cavp/documents/aes/aesval.html</span>
-<br style="font-family: arial,sans-serif;">
-<span style="font-family: arial,sans-serif;">[9]&nbsp; PKCS #5 v2.1: Password-Based Cryptography Standard - ftp://ftp.rsasecurity.com/pub/pkcs/pkcs-5v2/pkcs5v2_1.pdf</span><br style="font-family: arial,sans-serif;">
-<br style="font-family: arial,sans-serif;">
-<br style="font-family: arial,sans-serif;">
+<span style="font-family:arial,sans-serif;">Using the example <a href="http://github.com/virtix/cfcrypto/tree/master">Crypto</a> component or your own variation will give you a viable option to storing passwords directly in the database and contribute to better security in your  application. However, <b>do not</b> take my word alone for this. Please do some thorough research and learn for yourself. When it comes to protecting your customer's data and privacy (and your job) make sure you know what you are doing and why.</span>
+
+<span style="font-family:arial,sans-serif;">Test and be Happy!</span>
+
+<b style="font-family: arial,sans-serif;">References (Many are PDFs):</b>
+<span style="font-family:arial,sans-serif;">[1] OWASP Java Hashing - http://www.owasp.org/index.php/Hashing_Java</span>
+<span style="font-family:arial,sans-serif;">[2] NIST Secure Hash Standard - http://csrc.nist.gov/publications/fips/fips180-3/fips180-3_final.pdf
+[3] FIPS-140-2 Draft (June,18,2009) - http://csrc.nist.gov/publications/fips/fips140-2/fips1402annexa.pdf</span>
+<span style="font-family:arial,sans-serif;">[4] Guide to Enterprise Password Management (Draft) - http://csrc.nist.gov/publications/drafts/800-118/draft-sp800-118.pdf</span>
+<span style="font-family:arial,sans-serif;">[5] ColdFusion 8 developer security guidelines - http://www.adobe.com/devnet/coldfusion/articles/dev_security/coldfusion_security_cf8.pdf</span>
+<span style="font-family:arial,sans-serif;">[6] Java Cryptography Architecture (JCA) - http://java.sun.com/javase/6/docs/technotes/guides/security/crypto/CryptoSpec.html</span>
+<span style="font-family:arial,sans-serif;">[7] Rainbow table - http://en.wikipedia.org/wiki/Rainbow_table</span>
+<span style="font-family:arial,sans-serif;">[8] NIST  Advanced Encryption Standard Algorithm Validation List - http://csrc.nist.gov/groups/STM/cavp/documents/aes/aesval.html</span>
+<span style="font-family:arial,sans-serif;">[9]  PKCS #5 v2.1: Password-Based Cryptography Standard - ftp://ftp.rsasecurity.com/pub/pkcs/pkcs-5v2/pkcs5v2_1.pdf</span>
