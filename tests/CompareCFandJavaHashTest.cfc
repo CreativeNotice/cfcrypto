@@ -1,27 +1,40 @@
-<cfcomponent>
+<cfcomponent extends="mxunit.framework.TestCase">
 
-<cffunction name="init" returntype="Crypto">
-  <cfreturn this />
-</cffunction>
+<cfscript>
+function hashingShouldProduceSameData() {
+  var salt = genBinarySalt(16);
+  var pwd = 'password';
+  cfHash = computeHashCF(pwd, tobase64(salt));
+  javaHash = computeHashJava(pwd, tobase64(salt));
+  assertEquals( cfHash , javaHash );
+}
+
+function smokeCFHash() {
+  var salt = genBinarySalt(16);
+ hashed = computeHashCF('password', toBase64(salt));
+ debug(hashed);
+}
 
 
-<cffunction name="computeHash" access="public" returntype="String">
+</cfscript>
+
+<cffunction name="computeHashCF" access="private" returntype="String">
   <cfargument name="password" type="string" />
   <cfargument name="salt" type="string" />
   <cfargument name="iterations" type="numeric" required="false" default="1024" />
   <cfargument name="algorithm" type="string" required="false" default="SHA512" />
   <cfscript>
     var hashed = '';
-    hashed = hash( password & salt, arguments.algorithm, 'UTF-8' );
+    hashed = hash( password & salt, algorithm, 'UTF-16' );
     for (i = 1; i <= iterations; i++) {
-      hashed = hash( password & salt, arguments.algorithm, 'UTF-8' );
+      hashed = hash( password & salt, algorithm, 'UTF-16' );
     }
     return hashed;
   </cfscript>
 </cffunction>
 
-<!--- Here for comparison analysis --->
-<cffunction name="computeJavaHash" access="public" returntype="String">
+
+<cffunction name="computeHashJava" access="private" returntype="String">
   <cfargument name="password" type="string" />
   <cfargument name="salt" type="string" />
   <cfargument name="iterations" type="numeric" required="false" default="1024" />
@@ -31,7 +44,7 @@
     var i = 1;
     var input = '';
     digest = createObject("java", "java.security.MessageDigest");
-    digest  = digest.getInstance(arguments.algorithm);
+    digest  = digest.getInstance(algorithm);
     digest.reset();
     digest.update(salt.getBytes());
     input = digest.digest(password.getBytes("UTF-8"));
@@ -43,38 +56,6 @@
   </cfscript>
 </cffunction>
 
-
-<cffunction name="genSalt" access="public" returnType="any" output="no">
-   <cfargument name="size" type="numeric" required="false" default="16" hint="How many bytes should be used to generate the salt" />
-   <cfargument name="type" type="string"  required="false" default="base64" hint="Should be either binary or base64" />
-     <cfscript>
-     switch(arguments.type){
-       case 'binary':
-        return genBinarySalt(size);
-       break;
-       case 'bin':
-        return genBinarySalt(size);
-       break;
-       default :
-         return genBase64Salt(size);
-       break;
-     }
-    </cfscript>
-</cffunction>
-
-
-
-<cffunction name="genBase64Salt" access="private" returnType="string" output="no">
-    <cfargument name="size" type="numeric" required="true"/>
-    <cfscript>
-     return toBase64( genBinarySalt(size) );
-    </cfscript>
-</cffunction>
-
-<!---
-Thanks to Christian Cantrell!!
-http://weblogs.macromedia.com/cantrell/archives/2004/01/byte_arrays_and_1.html
---->
 <cffunction name="genBinarySalt" access="private" returnType="binary" output="no">
     <cfargument name="size" type="numeric" required="true"/>
     <cfscript>
@@ -84,6 +65,5 @@ http://weblogs.macromedia.com/cantrell/archives/2004/01/byte_arrays_and_1.html
      return bytes;
     </cfscript>
 </cffunction>
-
 
 </cfcomponent>

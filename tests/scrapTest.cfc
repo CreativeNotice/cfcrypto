@@ -3,12 +3,19 @@
 <!--- @cfmlvariable name="mda" type="java.security.MessageDigestSpi" --->
 <!--- @cfmlvariable name="mac"  type="javax.crypto.Mac" --->
   <cfscript>
-   md = createObject("java", "java.security.MessageDigest");
+
+  function md5Foo() {
+    md = createObject("java", "java.security.MessageDigest");
+    md.getInstance("MD5");
+  }
+
+
+    /* md = createObject("java", "java.security.MessageDigest");
    mds = createObject("java", "java.security.MessageDigestSpi");
    mac = createObject("java", "javax.crypto.Mac");
    md.getInstance()
 
-   /*
+
 
    package com.thinksec.example;
 

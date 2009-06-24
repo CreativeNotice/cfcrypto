@@ -1,8 +1,27 @@
 <cfcomponent output="false" extends="mxunit.framework.TestCase">
 <!--- @cfmlvariable name="cipher" type="javax.crypto.Cipher" --->
 <!--- @cfmlvariable name="kg" type="javax.crypto.KeyGenerator" --->
+
+<cffunction name="blogPrint">
+ <cfset user_id = "bill" />
+ <cfset password = "p@ssW0rd" />
+ <cfset crypto = createObject('component', 'cfcrypto.Crypto') />
+ <cfset salt = crypto.genSalt() />
+ <cfset passwordHash = crypto.computeHash(password,salt) />
+
+ <cfset debug(salt)	>
+ <cfset debug(passwordHash)	>
+
+</cffunction>
+
+
 <cfscript>
 
+function md5Foo() {
+	fh = hash( 'foo', 'MD5' );
+  debug( fh );
+  debug( toBinary(fh) );
+}
 
 function dumpProviders (){
     providers = createObject('java' ,'java.security.Security').getProviders();
@@ -10,9 +29,9 @@ function dumpProviders (){
 }
 
 function testGenSecretKey(){
-   
+
  key = generateSecretKey("AES",128);
- asd = encrypt('foo','foo','MD5');
+
 }
 
 function compareHashes() {
@@ -45,13 +64,6 @@ function compareHashes() {
 
 
 function cfencryptTest() {
-
-	//Encrypt(string, key [, algorithm, encoding, IVorSalt, iterations])
-	//EncryptBinary(bytes, key [, algorithm, IVorSalt, iterations]) //no encoding
-
-
-
-
     originalString = "a quick brown fox jumps over the lazy dog";
     key = generateSecretKey("AES");
     ivString = "whatever";
@@ -60,19 +72,9 @@ function cfencryptTest() {
     debug(ivOrSalt);
     encrypted = encrypt(originalString,key,"AES", "UU", ivOrSalt , 1024);
 
-
-
     debug(encrypted);
-    //decrypted = decrypt(encrypted,key,"DESede");
-    //debug(decrypted);
-   // assertEquals(originalString,decrypted);
 
  }
-/*
-    SecureRandom random = new SecureRandom();
-     	random.nextBytes(salt);
-     	md.update(salt);
-*/
 
  function MD_SHA256() {
      username = 'admin';
@@ -128,12 +130,12 @@ function cfencryptTest() {
     encrypted = cipher.doFinal(originalBytes);
     debug(encrypted);
 
-   cipher.init( javacast("int",2) , sk, ivSp2);
-   decrypted = cipher.doFinal(encrypted);
+    cipher.init( javacast("int",2) , sk, ivSp2);
+    decrypted = cipher.doFinal(encrypted);
 
-   decryptedStr = createObject('java', 'java.lang.String').init(decrypted);
-   debug(decryptedStr);
-   assertEquals( originalString , decryptedStr );
+    decryptedStr = createObject('java', 'java.lang.String').init(decrypted);
+    debug(decryptedStr);
+    assertEquals( originalString , decryptedStr );
 
   }
 
