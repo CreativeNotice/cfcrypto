@@ -229,9 +229,7 @@
     <option name="state" value="project:///home/billy/webapps/cfcrypto/cfcrypto.ipr" />
   </component>
   <component name="ProjectModuleManager">
-    <modules>
-      <module fileurl="file://$PROJECT_DIR$/test/test.iml" filepath="$PROJECT_DIR$/test/test.iml" />
-    </modules>
+    <modules />
   </component>
   <component name="ProjectRootManager" version="2" languageLevel="JDK_1_5" assert-keyword="true" jdk-15="true" project-jdk-name="IDEA 9732" project-jdk-type="IDEA JDK">
     <output url="file://$PROJECT_DIR$/out" />

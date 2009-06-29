@@ -12,9 +12,10 @@
   <cfargument name="algorithm" type="string" required="false" default="SHA512" />
   <cfscript>
     var hashed = '';
+    var i = 1;
     hashed = hash( password & salt, arguments.algorithm, 'UTF-8' );
     for (i = 1; i <= iterations; i++) {
-      hashed = hash( password & salt, arguments.algorithm, 'UTF-8' );
+      hashed = hash( hashed & salt , arguments.algorithm, 'UTF-8' );
     }
     return hashed;
   </cfscript>
