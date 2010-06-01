@@ -9,7 +9,7 @@
   <cfargument name="password" type="string" />
   <cfargument name="salt" type="string" />
   <cfargument name="iterations" type="numeric" required="false" default="1024" />
-  <cfargument name="algorithm" type="string" required="false" default="SHA512" />
+  <cfargument name="algorithm" type="string" required="false" default="SHA-512" />
   <cfscript>
     var hashed = '';
     var i = 1;
