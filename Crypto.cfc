@@ -1,90 +1,93 @@
-<cfcomponent>
+<cfscript>
+/**
+ * Crypto.cfc
+ * This project originally started by Bill Shelton (virtix) in 2009.
+ * I've updated the CFC to use the much nicer (IMO) script syntax and removed
+ * the superfulous files that I don't need. Thanks to Bill for sharing this 
+ * to the interwebs.
+ *
+ * NOTE: cfscript tags are not needed and should be removed. I've got them in place
+ * 		 so Sublime Text 2 will apply the CF language formating.
+ *
+ * @author Bill Shelton https://github.com/virtix/cfcrypto
+ * @author Ryan Mueller https://github.com/CreativeNotice/cfcrypto
+ * @created 07/19/2012
+ *
+ * @displayname CFCrypto
+ * @hint 		Cryptography component
+ */
+component
+{
+	/**
+	 * computeHash
+	 * 
+	 * @hint Will hash a password and salt a number of iterations.
+	 * @returnType String
+	 */
+	public function computeHash (required string password, required string salt, required numeric interations=1024, required string algorithm='SHA-512') 
+	{
+		// first hash
+		var hashed = hash( arguments.password & arguments.salt, arguments.algorithm, 'UTF-8');
+		// iterate hash
+		for(var i = 1; i <= arguments.iteractions; i=i+1){
+			hashed = hash( hashed & arguments.salt, arguments.algorithm, 'UTF-8' );
+		}
+		// return hash
+		return hashed;
+	}
 
-<cffunction name="init" returntype="Crypto">
-  <cfreturn this />
-</cffunction>
+	/**
+	 * generateSalt
+	 * Requires generateBinarySalt()
+	 * Requires generateBase64Salt()
+	 * 
+	 * @hint Will generate a random binary or base64 salt
+	 * @size How many bytes should be used to generate the salt.
+	 * @type binary or base64 are your options.
+	 * @returnType Any
+	 */
+	public function generateSalt (required numeric size=16, required string type='base64')
+	{
+		switch (arguments.type) {
+			case 'binary' : {
+				return generateBinarySalt(arguments.size);
+				break;
+			}
+			default : {
+				return generateBase64Salt(arguments.size);
+				break;
+			}
+		}
+	}
 
+	/**
+	 * generateBase64Salt
+	 * Requires generateBinarySalt()
+	 * 
+	 * @hint Will return a random salt Base64 encoded.
+	 * @size How many bytes should be used to generate the salt.
+	 * @returnType String
+	 */
+	private function generateBase64Salt (required numeric size)
+	{
+		return BinaryEncode( generateBinarySalt(arguments.size), 'Base64' );
+	}
 
-<cffunction name="computeHash" access="public" returntype="String">
-  <cfargument name="password" type="string" />
-  <cfargument name="salt" type="string" />
-  <cfargument name="iterations" type="numeric" required="false" default="1024" />
-  <cfargument name="algorithm" type="string" required="false" default="SHA-512" />
-  <cfscript>
-    var hashed = '';
-    var i = 1;
-    hashed = hash( password & salt, arguments.algorithm, 'UTF-8' );
-    for (i = 1; i <= iterations; i++) {
-      hashed = hash( hashed & salt , arguments.algorithm, 'UTF-8' );
-    }
-    return hashed;
-  </cfscript>
-</cffunction>
-
-<!--- Here for comparison analysis --->
-<cffunction name="computeJavaHash" access="public" returntype="String">
-  <cfargument name="password" type="string" />
-  <cfargument name="salt" type="string" />
-  <cfargument name="iterations" type="numeric" required="false" default="1024" />
-  <cfargument name="algorithm" type="string" required="false" default="SHA512" />
-  <cfscript>
-    var digest = '';
-    var i = 1;
-    var input = '';
-    digest = createObject("java", "java.security.MessageDigest");
-    digest  = digest.getInstance(arguments.algorithm);
-    digest.reset();
-    digest.update(salt.getBytes());
-    input = digest.digest(password.getBytes("UTF-8"));
-    for (i = 1; i <= iterations; i++) {
-      digest.reset();
-      input = digest.digest(input);
-    }
-    return toBase64(input);
-  </cfscript>
-</cffunction>
-
-
-<cffunction name="genSalt" access="public" returnType="any" output="no">
-   <cfargument name="size" type="numeric" required="false" default="16" hint="How many bytes should be used to generate the salt" />
-   <cfargument name="type" type="string"  required="false" default="base64" hint="Should be either binary or base64" />
-     <cfscript>
-     switch(arguments.type){
-       case 'binary':
-        return genBinarySalt(size);
-       break;
-       case 'bin':
-        return genBinarySalt(size);
-       break;
-       default :
-         return genBase64Salt(size);
-       break;
-     }
-    </cfscript>
-</cffunction>
-
-
-
-<cffunction name="genBase64Salt" access="private" returnType="string" output="no">
-    <cfargument name="size" type="numeric" required="true"/>
-    <cfscript>
-     return toBase64( genBinarySalt(size) );
-    </cfscript>
-</cffunction>
-
-<!---
-Thanks to Christian Cantrell!!
-http://weblogs.macromedia.com/cantrell/archives/2004/01/byte_arrays_and_1.html
---->
-<cffunction name="genBinarySalt" access="private" returnType="binary" output="no">
-    <cfargument name="size" type="numeric" required="true"/>
-    <cfscript>
-     var byteType = createObject('java', 'java.lang.Byte').TYPE;
-     var bytes = createObject('java','java.lang.reflect.Array').newInstance( byteType , size);
-     var rand = createObject('java', 'java.security.SecureRandom').nextBytes(bytes);
-     return bytes;
-    </cfscript>
-</cffunction>
-
-
-</cfcomponent>
+	/**
+	 * generateBinarySalt
+	 * Thanks to Christian Cantrell!!
+	 * http://weblogs.macromedia.com/cantrell/archives/2004/01/byte_arrays_and_1.html
+	 * 
+	 * @hint Returns random binary salt.
+	 * @size How many bytes should be used to generate the salt.
+	 * @returnType Binary
+	 */
+	private function generateBinarySalt (required numeric size)
+	{
+		var byteType = createObject('java', 'java.lang.Byte').TYPE;
+		var bytes    = createObject('java', 'java.lang.reflect.Array').newInstance( byteType , arguments.size);
+		var rand     = createObject('java', 'java.security.SecureRandom').nextBytes(bytes);
+    	return bytes;
+	}
+}
+</cfscript>
