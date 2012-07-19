@@ -3,11 +3,11 @@
  * Crypto.cfc
  * This project originally started by Bill Shelton (virtix) in 2009.
  * I've updated the CFC to use the much nicer (IMO) script syntax and removed
- * the superfulous files that I don't need. Thanks to Bill for sharing this 
+ * the superfluous files that I don't need. Thanks to Bill for sharing this 
  * to the interwebs.
  *
  * NOTE: cfscript tags are not needed and should be removed. I've got them in place
- * 		 so Sublime Text 2 will apply the CF language formating.
+ * 		 so Sublime Text 2 will apply the CF language formatting.
  *
  * @author Bill Shelton https://github.com/virtix/cfcrypto
  * @author Ryan Mueller https://github.com/CreativeNotice/cfcrypto
