@@ -29,7 +29,7 @@ component
 		// first hash
 		var hashed = hash( arguments.password & arguments.salt, arguments.algorithm, 'UTF-8');
 		// iterate hash
-		for(var i = 1; i <= arguments.iteractions; i=i+1){
+		for(var i = 1; i <= arguments.interations; i=i+1){
 			hashed = hash( hashed & arguments.salt, arguments.algorithm, 'UTF-8' );
 		}
 		// return hash
